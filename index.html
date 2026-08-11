@@ -1,172 +1,163 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Music Player</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-  }
-  .player-container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    width: 300px;
-  }
-  .track-info {
-    text-align: center;
-    margin-bottom: 15px;
-  }
-  .track-name {
-    font-weight: bold;
-    font-size: 18px;
-  }
-  .artist-name {
-    color: #666;
-    font-size: 14px;
-  }
-  .controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #0056b3;
-  }
-  .playlist {
-    margin-top: 20px;
-    list-style: none;
-    padding: 0;
-  }
-  .playlist li {
-    padding: 8px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-  }
-  .playlist li:hover {
-    background-color: #f7f7f7;
-  }
-  .playlist li.active {
-    font-weight: bold;
-    color: #007bff;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    
+    <!-- YouTube iFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .player-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+
+        .track-info {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .track-name {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .artist-name {
+            color: #666;
+            font-size: 14px;
+        }
+
+        #player {
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .playlist {
+            margin-top: 20px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .playlist li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .playlist li:hover {
+            background-color: #f7f7f7;
+        }
+
+        .playlist li.active {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
 </head>
 <body>
 
-<div class="player-container">
-  <div class="track-info">
-    <div class="track-name" id="track-name">Select a track</div>
-    <div class="artist-name" id="artist-name"></div>
-  </div>
-  <div class="controls">
-    <button id="prev-btn">Prev</button>
-    <button id="play-btn">Play</button>
-    <button id="next-btn">Next</button>
-  </div>
-  <ul class="playlist" id="playlist">
-    <!-- Playlist items will be injected here by JS -->
-  </ul>
-</div>
+    <div class="player-container">
+        <div class="track-info">
+            <div class="track-name" id="track-name">YouTube Playlist</div>
+            <div class="artist-name" id="artist-name">Suhaib Music Player</div>
+        </div>
 
-<audio id="audio-player"></audio>
+        <!-- YouTube Player Container -->
+        <div id="player"></div>
 
-<script>
-  const tracks = [
-    { name: "Song 1", artist: "Artist 1", src: "path/to/song1.mp3" },
-    { name: "Song 2", artist: "Artist 2", src: "path/to/song2.mp3" },
-    { name: "Song 3", artist: "Artist 3", src: "path/to/song3.mp3" }
-  ];
+        <div class="controls">
+            <button id="prev-btn">Prev</button>
+            <button id="play-btn">Play</button>
+            <button id="next-btn">Next</button>
+        </div>
 
-  let currentTrackIndex = 0;
-  const audioPlayer = document.getElementById('audio-player');
-  const trackName = document.getElementById('track-name');
-  const artistName = document.getElementById('artist-name');
-  const playBtn = document.getElementById('play-btn');
-  const playlist = document.getElementById('playlist');
+        <ul class="playlist" id="playlist">
+            <!-- Playlist items -->
+        </ul>
+    </div>
 
-  function loadTrack(index) {
-    const track = tracks[index];
-    trackName.textContent = track.name;
-    artistName.textContent = track.artist;
-    audioPlayer.src = track.src;
-    highlightActiveTrack(index);
-  }
+    <!-- YouTube Player Logic Script -->
+    <script>
+        var player;
 
-  function highlightActiveTrack(index) {
-    const items = playlist.getElementsByTagName('li');
-    for (let i = 0; i < items.length; i++) {
-      if (i === index) {
-        items[i].classList.add('active');
-      } else {
-        items[i].classList.remove('active');
-      }
-    }
-  }
+        // YouTube API ready function
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '200',
+                width: '100%',
+                playerVars: {
+                    'listType': 'playlist',
+                    'list': 'PLYIexFLR0TOmkUsnZ1Jk08Lt8--owBp6g',
+                    'autoplay': 0,
+                    'controls': 1
+                }
+            });
+        }
 
-  function playTrack() {
-    audioPlayer.play();
-    playBtn.textContent = "Pause";
-  }
+        // Custom Buttons Control
+        const playBtn = document.getElementById('play-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
 
-  function pauseTrack() {
-    audioPlayer.pause();
-    playBtn.textContent = "Play";
-  }
+        playBtn.addEventListener('click', () => {
+            if (player && player.getPlayerState) {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                    playBtn.textContent = 'Play';
+                } else {
+                    player.playVideo();
+                    playBtn.textContent = 'Pause';
+                }
+            }
+        });
 
-  playBtn.addEventListener('click', () => {
-    if (audioPlayer.paused) {
-      playTrack();
-    } else {
-      pauseTrack();
-    }
-  });
+        prevBtn.addEventListener('click', () => {
+            if (player && player.previousVideo) {
+                player.previousVideo();
+            }
+        });
 
-  document.getElementById('prev-btn').addEventListener('click', () => {
-    currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
-    loadTrack(currentTrackIndex);
-    playTrack();
-  });
-
-  document.getElementById('next-btn').addEventListener('click', () => {
-    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
-    loadTrack(currentTrackIndex);
-    playTrack();
-  });
-
-  function initPlaylist() {
-    tracks.forEach((track, index) => {
-      const li = document.createElement('li');
-      li.textContent = `${track.name} - ${track.artist}`;
-      li.addEventListener('click', () => {
-        currentTrackIndex = index;
-        loadTrack(currentTrackIndex);
-        playTrack();
-      });
-      playlist.appendChild(li);
-    });
-  }
-
-  initPlaylist();
-  loadTrack(currentTrackIndex);
-</script>
-
+        nextBtn.addEventListener('click', () => {
+            if (player && player.nextVideo) {
+                player.nextVideo();
+            }
+        });
+    </script>
 </body>
 </html>
