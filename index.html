@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suhaib Music Player</title>
-    
-    <!-- YouTube iFrame API Script -->
-    <script src="https://www.youtube.com/iframe_api"></script>
 
     <style>
         * {
@@ -122,6 +119,9 @@
         <div class="status-text" id="status">Loading Player...</div>
     </div>
 
+    <!-- YouTube iFrame API Script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script>
         var player;
         const playBtn = document.getElementById('play-btn');
@@ -134,20 +134,22 @@
             player = new YT.Player('player', {
                 playerVars: {
                     'listType': 'playlist',
-                    'list': 'PLYIexFLR0TOmkUsnZ1Jk08Lt8--owBp6g',
+                    'list': 'PLO7-VO1D0_6NYoMAN0XncJu4tvibirSmN', // Updated with your actual Playlist ID
                     'autoplay': 0,
                     'controls': 1,
-                    'modestbranding': 1
+                    'modestbranding': 1,
+                    'origin': window.location.origin
                 },
                 events: {
                     'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
                 }
             });
         }
 
         function onPlayerReady(event) {
-            statusText.textContent = "Player Ready!";
+            statusText.textContent = "Player Ready! Click Play.";
         }
 
         function onPlayerStateChange(event) {
@@ -159,7 +161,15 @@
                 statusText.textContent = "Paused";
             } else if (event.data === YT.PlayerState.BUFFERING) {
                 statusText.textContent = "Buffering...";
+            } else if (event.data === YT.PlayerState.ENDED) {
+                playBtn.textContent = 'Play';
+                statusText.textContent = "Finished";
             }
+        }
+
+        function onPlayerError(event) {
+            statusText.textContent = "Error loading song (Code: " + event.data + ")";
+            console.error("YouTube Player Error:", event.data);
         }
 
         // Play / Pause Toggle
