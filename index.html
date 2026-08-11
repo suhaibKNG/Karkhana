@@ -3,89 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
+    <title>Suhaib Music Player</title>
     
-    <!-- YouTube iFrame API -->
+    <!-- YouTube iFrame API Script -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
         }
 
         .player-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 300px;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            width: 340px;
         }
 
         .track-info {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .track-name {
             font-weight: bold;
-            font-size: 18px;
+            font-size: 20px;
+            color: #333;
         }
 
         .artist-name {
             color: #666;
             font-size: 14px;
+            margin-top: 4px;
+        }
+
+        #player-wrapper {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000;
         }
 
         #player {
-            margin-bottom: 15px;
-            border-radius: 8px;
-            overflow: hidden;
+            width: 100%;
+            height: 100%;
         }
 
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
         }
 
-        button {
+        .btn {
+            flex: 1;
             background-color: #007bff;
-            color: #fff;
+            color: #ffffff;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
             cursor: pointer;
+            transition: background-color 0.2s ease;
         }
 
-        button:hover {
+        .btn:hover {
             background-color: #0056b3;
         }
 
-        .playlist {
-            margin-top: 20px;
-            list-style: none;
-            padding: 0;
+        .btn:active {
+            transform: scale(0.98);
         }
 
-        .playlist li {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-        }
-
-        .playlist li:hover {
-            background-color: #f7f7f7;
-        }
-
-        .playlist li.active {
-            font-weight: bold;
-            color: #007bff;
+        .status-text {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -97,62 +107,81 @@
             <div class="artist-name" id="artist-name">Suhaib Music Player</div>
         </div>
 
-        <!-- YouTube Player Container -->
-        <div id="player"></div>
-
-        <div class="controls">
-            <button id="prev-btn">Prev</button>
-            <button id="play-btn">Play</button>
-            <button id="next-btn">Next</button>
+        <!-- YouTube Video Frame -->
+        <div id="player-wrapper">
+            <div id="player"></div>
         </div>
 
-        <ul class="playlist" id="playlist">
-            <!-- Playlist items -->
-        </ul>
+        <!-- Custom Controls -->
+        <div class="controls">
+            <button class="btn" id="prev-btn">Prev</button>
+            <button class="btn" id="play-btn">Play</button>
+            <button class="btn" id="next-btn">Next</button>
+        </div>
+
+        <div class="status-text" id="status">Loading Player...</div>
     </div>
 
-    <!-- YouTube Player Logic Script -->
     <script>
         var player;
+        const playBtn = document.getElementById('play-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const statusText = document.getElementById('status');
 
-        // YouTube API ready function
+        // YouTube API Init
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                height: '200',
-                width: '100%',
                 playerVars: {
                     'listType': 'playlist',
                     'list': 'PLYIexFLR0TOmkUsnZ1Jk08Lt8--owBp6g',
                     'autoplay': 0,
-                    'controls': 1
+                    'controls': 1,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
                 }
             });
         }
 
-        // Custom Buttons Control
-        const playBtn = document.getElementById('play-btn');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
+        function onPlayerReady(event) {
+            statusText.textContent = "Player Ready!";
+        }
 
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                playBtn.textContent = 'Pause';
+                statusText.textContent = "Playing...";
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                playBtn.textContent = 'Play';
+                statusText.textContent = "Paused";
+            } else if (event.data === YT.PlayerState.BUFFERING) {
+                statusText.textContent = "Buffering...";
+            }
+        }
+
+        // Play / Pause Toggle
         playBtn.addEventListener('click', () => {
             if (player && player.getPlayerState) {
                 const state = player.getPlayerState();
                 if (state === YT.PlayerState.PLAYING) {
                     player.pauseVideo();
-                    playBtn.textContent = 'Play';
                 } else {
                     player.playVideo();
-                    playBtn.textContent = 'Pause';
                 }
             }
         });
 
+        // Previous Track
         prevBtn.addEventListener('click', () => {
             if (player && player.previousVideo) {
                 player.previousVideo();
             }
         });
 
+        // Next Track
         nextBtn.addEventListener('click', () => {
             if (player && player.nextVideo) {
                 player.nextVideo();
